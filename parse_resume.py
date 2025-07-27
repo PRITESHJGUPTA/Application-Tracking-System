@@ -6,7 +6,13 @@ import psycopg2
 
 from skill_list import skill_keywords
 
-nlp = spacy.load("en_core_web_sm")
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    from spacy.cli import download
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
+
 
 def extract_text_from_pdf(file_path):
     return extract_text(file_path)
