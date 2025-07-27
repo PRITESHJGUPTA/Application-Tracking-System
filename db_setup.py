@@ -8,7 +8,7 @@ from sqlalchemy import Boolean
 # Inside Candidate class
 is_selected = Column(Boolean, default=False)
 
-DATABASE_URL = "postgresql+psycopg2://postgres:password@localhost:5432/ats_db"
+DATABASE_URL = "postgresql://ats_db_btbl_user:ibIhICYHSbdD0JG9cA7uInYmbXfUlN28@dpg-d22udd2dbo4c73fkkbh0-a/ats_db_btbl"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
