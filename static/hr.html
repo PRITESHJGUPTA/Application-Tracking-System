@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HR Dashboard - ATS</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background-color: #2563eb;
+      color: white;
+      font-weight: bold;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background-color: #1e40af;
+    }
+
+    .dashboard-container {
+      max-width: 1400px;
+      width: 95vw;
+      margin: 60px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    #candidatesTable {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    #formLink {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    if (localStorage.getItem("hr_logged_in") !== "true") {
+      window.location.href = "/hr-login";
+    }
+  </script>
+
+  <button class="logout-btn" onclick="localStorage.clear(); location.href='/hr-login'">Logout</button>
+
+  <div class="dashboard-container">
+    <h1>HR Candidate Dashboard</h1>
+
+    <!-- Toggle form and show link -->
+    <div style="margin-bottom: 15px;">
+      <label for="formToggle">Enable Candidate Form:</label>
+      <input type="checkbox" id="formToggle" />
+      <p id="formLink"></p>
+    </div>
+
+    <!-- Filter Section -->
+    <section class="filter-section" style="display: flex; flex-wrap: wrap; gap: 20px;">
+      <div class="form-row">
+        <label for="filterSkill">Skill:</label>
+        <input type="text" id="filterSkill" placeholder="e.g., Python" />
+      </div>
+      <div class="form-row">
+        <label for="filterQualification">Qualification:</label>
+        <select id="filterQualification">
+          <option value="">-- Any --</option>
+          <option value="MCA">MCA</option>
+          <option value="MCS">MCS</option>
+          <option value="ME">ME</option>
+          <option value="BE">BE</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="filterExperience">Min Experience:</label>
+        <input type="number" id="filterExperience" min="0" />
+      </div>
+      <div class="form-row">
+        <label for="filterAptitude">Aptitude:</label>
+        <select id="filterAptitude">
+          <option value="">-- Any --</option>
+          <option value="Not Started">Not Started</option>
+          <option value="Performing Test">Performing Test</option>
+          <option value="Cleared">Cleared</option>
+          <option value="Not Cleared">Not Cleared</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="filterInterview1">Interview 1:</label>
+        <select id="filterInterview1">
+          <option value="">-- Any --</option>
+          <option value="Not Started">Not Started</option>
+          <option value="Undergoing">Undergoing</option>
+          <option value="Cleared">Cleared</option>
+          <option value="Not Cleared">Not Cleared</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label for="filterInterview2">Interview 2:</label>
+        <select id="filterInterview2">
+          <option value="">-- Any --</option>
+          <option value="Not Started">Not Started</option>
+          <option value="Undergoing">Undergoing</option>
+          <option value="Cleared">Cleared</option>
+          <option value="Not Cleared">Not Cleared</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Upload CSV Row -->
+    <section style="margin-top: 10px; display: flex; gap: 20px; align-items: center;">
+      <form id="csvUploadForm" style="display: flex; gap: 10px; align-items: center;">
+        <label for="csvFile"><strong>Upload Aptitude Results (CSV)</strong></label>
+        <input type="file" id="csvFile" accept=".csv" required />
+        <button type="submit">Upload Results</button>
+      </form>
+    </section>
+
+    <p id="csvStatus" style="margin-top: 10px; font-size: 0.9rem;"></p>
+
+    <!-- Load Candidates Button -->
+    <div style="margin-top: 20px; text-align: right;">
+      <button id="loadBtn">Load Candidates</button>
+    </div>
+
+    <!-- Candidates Table -->
+    <section>
+      <table id="candidatesTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Qualification</th>
+            <th>Gender</th>
+            <th>Skills</th>
+            <th>Experience</th>
+            <th>Aptitude</th>
+            <th>Interview 1</th>
+            <th>Interview 2</th>
+            <th>Selected</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="/static/hr.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.getElementById("formToggle");
+      const formLink = document.getElementById("formLink");
+
+      fetch("/submission-status")
+        .then(res => res.json())
+        .then(data => {
+          toggle.checked = data.enabled;
+          updateFormLink(data.enabled);
+        });
+
+      toggle.addEventListener("change", () => {
+        fetch("/toggle-submission", { method: "POST" })
+          .then(res => res.json())
+          .then(data => {
+            toggle.checked = data.enabled;
+            updateFormLink(data.enabled);
+          });
+      });
+
+      function updateFormLink(isEnabled) {
+        if (isEnabled) {
+          formLink.innerHTML = `✅ Form is <strong>ENABLED</strong> — <a href="/form" target="_blank">open candidate form</a> or share: <code>${window.location.origin}/form</code>`;
+        } else {
+          formLink.innerHTML = "🚫 Candidate form is currently <strong>DISABLED</strong>.";
+        }
+      }
+    });
+  </script>
+</body>
+</html>

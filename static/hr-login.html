@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HR Login</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>HR Login</h2>
+    <form id="loginForm" style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="password" id="password" placeholder="Enter HR password" required />
+      <button type="submit">Login</button>
+      <p id="loginStatus" style="color: red;"></p>
+    </form>
+  </div>
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const pass = document.getElementById("password").value;
+      if (pass === "admin123") {
+        localStorage.setItem("hr_logged_in", "true");
+        window.location.href = "/hr";
+      } else {
+        document.getElementById("loginStatus").textContent = "❌ Incorrect password";
+      }
+    });
+  </script>
+</body>
+</html>
